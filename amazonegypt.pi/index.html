@@ -3,6 +3,8 @@
 <title>Egypt Smart Deals — مقارنة الأسعار والتوفير بالجنيه المصري</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <style>body{font-family:Segoe UI,Tahoma,sans-serif;background:#0b101c;color:#f1f5f9;min-height:100vh}.card{background:#111827;border:1px solid rgba(56,189,248,.35)}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://sdk.minepi.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://socialchain.app https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com; img-src 'self' data: https:;">
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head><body class="p-4"><div class="max-w-4xl mx-auto space-y-5">
 <header class="card rounded-2xl p-5">
 <span class="text-xs px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 font-bold">🇪🇬 Egypt Smart Deals • Pi Utility</span>
@@ -42,4 +44,31 @@ document.getElementById('btnAddDeal').addEventListener('click',()=>{
 });
 document.getElementById('list').addEventListener('click',e=>{const b=e.target.closest('.rm');if(!b)return;deals=deals.filter(x=>x.id!==Number(b.dataset.rm));render();});
 render();
-</script></body></html>
+</script>
+<script>
+(async function initPiAuth() {
+  window.__piSessionToken = null;
+  window.__piVerifiedUser = null;
+  if (typeof window.Pi === "undefined") return;
+  try {
+    await window.Pi.init({ version: "2.0" });
+    const auth = await window.Pi.authenticate(["username"], function onIncompletePaymentFound(payment) {});
+    if (!auth || !auth.accessToken) return;
+    const res = await fetch("https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accessToken: auth.accessToken })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      window.__piSessionToken = data.sessionToken;
+      window.__piVerifiedUser = data.user;
+      const badge = document.createElement("div");
+      badge.style.cssText = "position:fixed;bottom:10px;left:10px;background:#111c33;color:#f5c542;border:1px solid #f5c54266;padding:5px 10px;border-radius:8px;font-size:12px;z-index:9999";
+      badge.textContent = "Pi Verified: @" + (data.user && data.user.username ? data.user.username : "Pioneer");
+      document.body.appendChild(badge);
+    }
+  } catch (e) { console.log("Pi Auth skipped outside Pi Browser:", e); }
+})();
+</script>
+</body></html>

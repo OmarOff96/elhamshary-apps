@@ -3,6 +3,8 @@
 <title>HalaStore.pi — متجر المهارات والأدوات الرقمية</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <style>body{font-family:Segoe UI,Tahoma,sans-serif;background:#090d16;color:#f1f5f9;min-height:100vh}.card{background:#111827;border:1px solid rgba(212,175,55,.35)}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://sdk.minepi.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://socialchain.app https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com; img-src 'self' data: https:;">
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head><body class="p-4"><div class="max-w-5xl mx-auto space-y-5">
 <header class="card rounded-2xl p-5 flex flex-wrap justify-between items-center gap-3">
 <div><span class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 font-bold">🛍️ halastore.pi • Pi Ecosystem Utility</span>
@@ -61,4 +63,31 @@ document.getElementById('btnCart').addEventListener('click',()=>document.getElem
 document.getElementById('btnCloseCart').addEventListener('click',()=>document.getElementById('cartBox').classList.add('hidden'));
 document.getElementById('btnCheckout').addEventListener('click',()=>{if(!cart.length){toast('أضف منتجًا أولًا');return;}toast('جاهز للربط بمحفظة Pi SDK في الخطوة القادمة!');});
 render();
-</script></body></html>
+</script>
+<script>
+(async function initPiAuth() {
+  window.__piSessionToken = null;
+  window.__piVerifiedUser = null;
+  if (typeof window.Pi === "undefined") return;
+  try {
+    await window.Pi.init({ version: "2.0" });
+    const auth = await window.Pi.authenticate(["username"], function onIncompletePaymentFound(payment) {});
+    if (!auth || !auth.accessToken) return;
+    const res = await fetch("https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accessToken: auth.accessToken })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      window.__piSessionToken = data.sessionToken;
+      window.__piVerifiedUser = data.user;
+      const badge = document.createElement("div");
+      badge.style.cssText = "position:fixed;bottom:10px;left:10px;background:#111c33;color:#f5c542;border:1px solid #f5c54266;padding:5px 10px;border-radius:8px;font-size:12px;z-index:9999";
+      badge.textContent = "Pi Verified: @" + (data.user && data.user.username ? data.user.username : "Pioneer");
+      document.body.appendChild(badge);
+    }
+  } catch (e) { console.log("Pi Auth skipped outside Pi Browser:", e); }
+})();
+</script>
+</body></html>
