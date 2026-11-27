@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoldMaster.pi — سجل الصفقات وتقارير الأداء اليومي | Elhamshary Prime</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700&display=swap');
+    body { font-family: 'Cairo', 'Inter', sans-serif; background: radial-gradient(circle at top left, #172038 0%, #090d16 60%, #05070d 100%); color: #f1f5f9; min-height: 100vh; }
+    .gold-text { background: linear-gradient(135deg, #f6d365 0%, #d4af37 55%, #b8860b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card { background: rgba(17, 24, 39, 0.86); border: 1px solid rgba(212, 175, 55, 0.35); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="p-3 sm:p-6">
+  <div class="max-w-5xl mx-auto space-y-5">
+    <header class="card rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs font-bold mb-2">
+          <span>🏆 goldmaster.pi</span><span>•</span><span>Trade Report Builder Utility</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold gold-text">سجل الصفقات وبطاقة الأداء اليومي</h1>
+        <p class="text-slate-400 text-sm mt-1">سجّل صفقات الذهب والفضة، احسب صافي النقاط ونسبة النجاح، وانسخ تقرير يومي احترافي بضغطة واحدة</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="btnCopyReport" type="button" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition cursor-pointer">📋 نسخ التقرير اليومي</button>
+        <button id="btnClearAll" type="button" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-semibold text-sm transition cursor-pointer">🗑️ مسح الكل</button>
+      </div>
+    </header>
+
+    <!-- KPI Row -->
+    <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="card rounded-2xl p-4 text-center">
+        <div class="text-xs text-slate-400">صافي النقاط (Pips)</div>
+        <div id="kpiPips" class="text-2xl font-extrabold text-emerald-400 mt-1">0</div>
+      </div>
+      <div class="card rounded-2xl p-4 text-center">
+        <div class="text-xs text-slate-400">عدد الصفقات</div>
+        <div id="kpiCount" class="text-2xl font-extrabold text-amber-300 mt-1">0</div>
+      </div>
+      <div class="card rounded-2xl p-4 text-center">
+        <div class="text-xs text-slate-400">نسبة الصفقات الإيجابية</div>
+        <div id="kpiWinRate" class="text-2xl font-extrabold text-sky-300 mt-1">0%</div>
+      </div>
+      <div class="card rounded-2xl p-4 text-center">
+        <div class="text-xs text-slate-400">صفقات مؤمّنة (PROTECTED_SL)</div>
+        <div id="kpiProtected" class="text-2xl font-extrabold text-purple-300 mt-1">0</div>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- Add Trade Form -->
+      <section class="lg:col-span-4 card rounded-2xl p-5 space-y-3">
+        <h2 class="text-lg font-bold text-amber-300">➕ إضافة صفقة جديدة</h2>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="fSymbol" class="block text-xs text-slate-400 mb-1">الأداة</label>
+            <select id="fSymbol" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-bold">
+              <option value="XAUUSD">XAUUSD (الذهب)</option>
+              <option value="XAGUSD">XAGUSD (الفضة)</option>
+            </select>
+          </div>
+          <div>
+            <label for="fDir" class="block text-xs text-slate-400 mb-1">الاتجاه</label>
+            <select id="fDir" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-bold">
+              <option value="BUY">BUY شراء</option>
+              <option value="SELL">SELL بيع</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="fEntry" class="block text-xs text-slate-400 mb-1">سعر الدخول</label>
+            <input id="fEntry" type="number" step="0.1" value="3600.0" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-bold" />
+          </div>
+          <div>
+            <label for="fResult" class="block text-xs text-slate-400 mb-1">النتيجة</label>
+            <select id="fResult" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-bold">
+              <option value="TP">TP (هدف)</option>
+              <option value="PROTECTED_SL">PROTECTED_SL (مؤمّن)</option>
+              <option value="BE">BE (دخول)</option>
+              <option value="SL">SL (ستوب)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="fPips" class="block text-xs text-slate-400 mb-1">النقاط (موجب أو سالب)</label>
+            <input id="fPips" type="number" step="1" value="60" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-bold" />
+          </div>
+          <div>
+            <label for="fNote" class="block text-xs text-slate-400 mb-1">ملاحظة قصيرة</label>
+            <input id="fNote" type="text" placeholder="كسر 3600" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm" />
+          </div>
+        </div>
+        <button id="btnAdd" type="button" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition cursor-pointer">حفظ الصفقة في السجل</button>
+      </section>
+
+      <!-- Trades Table -->
+      <section class="lg:col-span-8 card rounded-2xl p-5 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-bold text-amber-300">📊 سجل صفقات اليوم</h2>
+          <div class="flex gap-1.5 text-xs">
+            <button data-filter="ALL" type="button" class="flt-btn px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold cursor-pointer">الكل</button>
+            <button data-filter="TP" type="button" class="flt-btn px-3 py-1 rounded-lg bg-slate-800 text-slate-300 cursor-pointer">TP</button>
+            <button data-filter="PROTECTED_SL" type="button" class="flt-btn px-3 py-1 rounded-lg bg-slate-800 text-slate-300 cursor-pointer">PROTECTED_SL</button>
+            <button data-filter="SL" type="button" class="flt-btn px-3 py-1 rounded-lg bg-slate-800 text-slate-300 cursor-pointer">SL</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-right border-collapse">
+            <thead>
+              <tr class="border-b border-slate-700 text-slate-400 text-xs">
+                <th class="py-2 px-2">الأداة</th>
+                <th class="py-2 px-2">الاتجاه</th>
+                <th class="py-2 px-2">الدخول</th>
+                <th class="py-2 px-2">الحالة</th>
+                <th class="py-2 px-2">النقاط</th>
+                <th class="py-2 px-2">ملاحظة</th>
+                <th class="py-2 px-2">حذف</th>
+              </tr>
+            </thead>
+            <tbody id="tradesBody" class="divide-y divide-slate-800"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <footer class="card rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-slate-400">
+      <span>⚠️ أداة لتسجيل ومراجعة الأداء الشخصي فقط وليست توصية استثمارية.</span>
+      <span>📩 تليجرام: <strong class="text-amber-300">@ElHamshary_support</strong> | 🔗 <a href="https://linktr.ee/ElHmashary_prime" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">linktr.ee/ElHmashary_prime</a></span>
+    </footer>
+  </div>
+
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm shadow-2xl opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+  <script>
+    const KEY = 'goldmaster_pi_trades_v1';
+    let filter = 'ALL';
+    let trades = [];
+
+    function loadTrades() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) { trades = JSON.parse(raw); return; }
+      } catch (e) {}
+      trades = [
+        { id: 1, symbol: 'XAUUSD', dir: 'SELL', entry: 3550.0, result: 'TP', pips: 60, note: 'كسر لحظي 3550' },
+        { id: 2, symbol: 'XAUUSD', dir: 'BUY', entry: 3600.0, result: 'PROTECTED_SL', pips: 20, note: 'حجز 30% + BE' }
+      ];
+    }
+
+    function saveTrades() {
+      try { localStorage.setItem(KEY, JSON.stringify(trades)); } catch (e) {}
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('opacity-0');
+      setTimeout(() => t.classList.add('opacity-0'), 2000);
+    }
+
+    function render() {
+      const totalPips = trades.reduce((s, t) => s + Number(t.pips || 0), 0);
+      const wins = trades.filter((t) => t.result === 'TP' || t.result === 'PROTECTED_SL').length;
+      const prot = trades.filter((t) => t.result === 'PROTECTED_SL').length;
+      const wr = trades.length ? Math.round((wins / trades.length) * 100) : 0;
+
+      const kPips = document.getElementById('kpiPips');
+      kPips.textContent = (totalPips >= 0 ? '+' : '') + totalPips;
+      kPips.className = 'text-2xl font-extrabold mt-1 ' + (totalPips >= 0 ? 'text-emerald-400' : 'text-rose-400');
+      document.getElementById('kpiCount').textContent = trades.length;
+      document.getElementById('kpiWinRate').textContent = wr + '%';
+      document.getElementById('kpiProtected').textContent = prot;
+
+      const list = filter === 'ALL' ? trades : trades.filter((t) => t.result === filter);
+      const body = document.getElementById('tradesBody');
+      if (!list.length) {
+        body.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500">لا توجد صفقات مطابقة للفلتر الحالي</td></tr>';
+        return;
+      }
+      body.innerHTML = list.map((t) => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-2.5 px-2 font-bold text-amber-300">${t.symbol}</td>
+          <td class="py-2.5 px-2 font-bold ${t.dir === 'BUY' ? 'text-emerald-400' : 'text-rose-400'}">${t.dir}</td>
+          <td class="py-2.5 px-2" dir="ltr">${t.entry}</td>
+          <td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded-md text-xs font-bold bg-slate-800 border border-slate-600">${t.result}</span></td>
+          <td class="py-2.5 px-2 font-extrabold ${t.pips >= 0 ? 'text-emerald-400' : 'text-rose-400'}" dir="ltr">${t.pips >= 0 ? '+' : ''}${t.pips}</td>
+          <td class="py-2.5 px-2 text-slate-300">${t.note || '-'}</td>
+          <td class="py-2.5 px-2"><button type="button" data-del="${t.id}" class="del-btn text-rose-400 hover:text-rose-300 font-bold cursor-pointer">✕</button></td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('btnAdd').addEventListener('click', () => {
+      const result = document.getElementById('fResult').value;
+      let pips = parseFloat(document.getElementById('fPips').value) || 0;
+      if (result === 'SL' && pips > 0) pips = -pips;
+      if (result === 'BE') pips = 0;
+      trades.unshift({
+        id: Date.now(),
+        symbol: document.getElementById('fSymbol').value,
+        dir: document.getElementById('fDir').value,
+        entry: parseFloat(document.getElementById('fEntry').value) || 0,
+        result,
+        pips,
+        note: document.getElementById('fNote').value.trim()
+      });
+      saveTrades();
+      render();
+      document.getElementById('fNote').value = '';
+      toast('تمت إضافة الصفقة بنجاح');
+    });
+
+    document.getElementById('tradesBody').addEventListener('click', (e) => {
+      const btn = e.target.closest('.del-btn');
+      if (!btn) return;
+      const id = Number(btn.getAttribute('data-del'));
+      trades = trades.filter((t) => t.id !== id);
+      saveTrades();
+      render();
+      toast('تم حذف الصفقة');
+    });
+
+    document.querySelectorAll('.flt-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        filter = btn.getAttribute('data-filter');
+        document.querySelectorAll('.flt-btn').forEach((b) => {
+          b.className = 'flt-btn px-3 py-1 rounded-lg cursor-pointer ' + (b === btn ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300');
+        });
+        render();
+      });
+    });
+
+    document.getElementById('btnClearAll').addEventListener('click', () => {
+      trades = [];
+      saveTrades();
+      render();
+      toast('تم تفريغ السجل');
+    });
+
+    document.getElementById('btnCopyReport').addEventListener('click', () => {
+      const total = trades.reduce((s, t) => s + Number(t.pips || 0), 0);
+      const lines = [
+        '🏆 تقرير الأداء اليومي — GoldMaster.pi',
+        `عدد الصفقات: ${trades.length} | صافي النقاط: ${total >= 0 ? '+' : ''}${total} بيب`,
+        ...trades.map((t) => `• ${t.symbol} ${t.dir} @ ${t.entry} -> ${t.result} (${t.pips >= 0 ? '+' : ''}${t.pips} بيب)`),
+        '⚠️ سجل أداء شخصي وليس توصية تداول',
+        '📩 تليجرام: @ElHamshary_support | 🔗 https://linktr.ee/ElHmashary_prime'
+      ].join('\n');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(lines).then(() => toast('تم نسخ التقرير اليومي!')).catch(() => fallbackCopy(lines));
+      } else { fallbackCopy(lines); }
+    });
+
+    function fallbackCopy(txt) {
+      const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('تم نسخ التقرير اليومي!');
+    }
+
+    loadTrades();
+    render();
+  </script>
+</body>
+</html>

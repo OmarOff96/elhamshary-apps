@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DodoStore.pi — كوكب الصغار | قصص وألغاز تفاعلية</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>body{font-family:Segoe UI,Tahoma,sans-serif;background:linear-gradient(135deg,#1e1b4b 0%,#0f172a 100%);color:#f8fafc;min-height:100vh}.card{background:rgba(30,41,59,.88);border:2px solid rgba(250,204,21,.4)}</style>
+</head><body class="p-4"><div class="max-w-4xl mx-auto space-y-5">
+<header class="card rounded-3xl p-5 flex flex-wrap justify-between items-center gap-3">
+<div><span class="text-xs px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-300 font-bold">🚀 dodostore.pi • كوكب الصغار | Kids Planet</span>
+<h1 class="text-2xl sm:text-3xl font-extrabold text-yellow-300 mt-2">🌟 عالم القصص والألغاز الذكية للأطفال</h1></div>
+<div class="px-4 py-2 rounded-2xl bg-indigo-900 border border-yellow-400/50 font-extrabold text-yellow-300">⭐ نجومك: <span id="stars">0</span></div>
+</header>
+<div class="flex gap-2">
+<button id="tabStories" type="button" class="px-4 py-2 rounded-xl bg-yellow-400 text-slate-950 font-extrabold text-sm cursor-pointer">📖 قصص قبل النوم</button>
+<button id="tabQuiz" type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm cursor-pointer">🧩 مسابقة الذكاء</button>
+</div>
+<section id="secStories" class="card rounded-3xl p-5 space-y-4">
+<div class="flex flex-wrap gap-2" id="storyBtns"></div>
+<div class="bg-slate-900/80 rounded-2xl p-5 space-y-2">
+<h2 id="stTitle" class="text-xl font-extrabold text-yellow-300"></h2>
+<p id="stBody" class="text-base leading-8 text-slate-100"></p>
+<p id="stMoral" class="text-sm font-bold text-emerald-300 pt-2"></p>
+</div>
+</section>
+<section id="secQuiz" class="hidden card rounded-3xl p-5 space-y-4">
+<h2 id="qText" class="text-xl font-extrabold text-yellow-300"></h2>
+<div id="qOpts" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+<p id="qFeed" class="text-sm font-bold"></p>
+<button id="btnNextQ" type="button" class="px-4 py-2 rounded-xl bg-emerald-400 text-slate-950 font-extrabold text-sm cursor-pointer">السؤال التالي ⬅️</button>
+</section>
+</div>
+<script>
+const STORIES=[
+ {t:'🦁 الأسد الصغير الصادق',b:'في غابة جميلة، أضاع الأسد الصغير كرته الذهبية ووجدها الأرنب السريع. ورغم أن الأرنب أحب الكرة كثيرًا، أعادها لصديقه فورًا ففرح الأسد وتشاركا اللعب معًا كل يوم.',m:'💡 الدرس المستفاد: الصدق والأمانة يصنعان أجمل الأصدقاء!'},
+ {t:'🚀 رحلة النجمة الفضولية',b:'قررت النجمة الصغيرة لولو أن تتعلم شيئًا جديدًا كل ليلة. سألت القمر عن المد والجزر، وسألت الشمس عن النور، حتى أصبحت أذكى نجمة تضيء السماء.',m:'💡 الدرس المستفاد: حب التعلم والفضول يجعلانك تتألق دائمًا!'},
+ {t:'🐝 النحلة المنظمة',b:'تستيقظ النحلة بيبو مبكرًا، ترتّب بيتها، ثم تجمع الرحيق بهدوء ونظام مع صديقاتها لتصنع أطيب عسل في البستان.',m:'💡 الدرس المستفاد: النظام والتعاون هما سر النجاح!'}
+];
+const QUIZ=[
+ {q:'ما هو أكبر كوكب في المجموعة الشمسية؟',opts:['الأرض','المشتري','المريخ','عطارد'],ans:1},
+ {q:'كم عدد ألوان قوس قزح؟',opts:['5 ألوان','6 ألوان','7 ألوان','9 ألوان'],ans:2},
+ {q:'ما هو الحيوان الذي يُلقب بسفينة الصحراء؟',opts:['الجمل','الأسد','الفيل','الزرافة'],ans:0},
+ {q:'ما هو النجم الذي يمد الأرض بالضوء والدفء؟',opts:['القمر','الشمس','زحل','المريخ'],ans:1}
+];
+let stars=0, qIdx=0, answered=false;
+function showStory(i){document.getElementById('stTitle').textContent=STORIES[i].t;document.getElementById('stBody').textContent=STORIES[i].b;document.getElementById('stMoral').textContent=STORIES[i].m;}
+document.getElementById('storyBtns').innerHTML=STORIES.map((s,i)=>`<button data-st="${i}" type="button" class="st-btn px-3 py-2 rounded-xl bg-indigo-900 hover:bg-indigo-700 text-xs font-bold cursor-pointer">${s.t}</button>`).join('');
+document.getElementById('storyBtns').addEventListener('click',e=>{const b=e.target.closest('.st-btn');if(b)showStory(Number(b.dataset.st));});
+function renderQ(){
+ answered=false; const item=QUIZ[qIdx];
+ document.getElementById('qText').textContent=item.q;
+ document.getElementById('qFeed').textContent='';
+ document.getElementById('qOpts').innerHTML=item.opts.map((o,i)=>`<button data-o="${i}" type="button" class="opt-btn p-3 rounded-xl bg-slate-900 hover:bg-indigo-900 border border-slate-700 font-bold text-sm cursor-pointer">${o}</button>`).join('');
+}
+document.getElementById('qOpts').addEventListener('click',e=>{
+ const b=e.target.closest('.opt-btn');if(!b||answered)return;answered=true;
+ const pick=Number(b.dataset.o), ok=pick===QUIZ[qIdx].ans;
+ if(ok){stars+=10;document.getElementById('stars').textContent=stars;document.getElementById('qFeed').textContent='🎉 إجابة رائعة! ربحت 10 نجوم!';document.getElementById('qFeed').className='text-sm font-bold text-emerald-300';}
+ else{document.getElementById('qFeed').textContent='💡 حاول في السؤال القادم — الإجابة الصحيحة: '+QUIZ[qIdx].opts[QUIZ[qIdx].ans];document.getElementById('qFeed').className='text-sm font-bold text-amber-300';}
+});
+document.getElementById('btnNextQ').addEventListener('click',()=>{qIdx=(qIdx+1)%QUIZ.length;renderQ();});
+document.getElementById('tabStories').addEventListener('click',()=>{document.getElementById('secStories').classList.remove('hidden');document.getElementById('secQuiz').classList.add('hidden');});
+document.getElementById('tabQuiz').addEventListener('click',()=>{document.getElementById('secQuiz').classList.remove('hidden');document.getElementById('secStories').classList.add('hidden');});
+showStory(0); renderQ();
+</script></body></html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Egypt Smart Deals — مقارنة الأسعار والتوفير بالجنيه المصري</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>body{font-family:Segoe UI,Tahoma,sans-serif;background:#0b101c;color:#f1f5f9;min-height:100vh}.card{background:#111827;border:1px solid rgba(56,189,248,.35)}</style>
+</head><body class="p-4"><div class="max-w-4xl mx-auto space-y-5">
+<header class="card rounded-2xl p-5">
+<span class="text-xs px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 font-bold">🇪🇬 Egypt Smart Deals • Pi Utility</span>
+<h1 class="text-2xl font-extrabold text-sky-300 mt-2">أداة مقارنة الأسعار وحساب التوفير في مصر</h1>
+<p class="text-slate-400 text-sm mt-1">قارن أسعار المنتجات بين متجرين، احسب قيمة ونسبة التوفير بالجنيه المصري، واحفظ قائمة مشترياتك</p>
+</header>
+<section class="card rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+<div><label for="pName" class="block text-xs text-slate-400 mb-1">اسم المنتج</label><input id="pName" type="text" placeholder="سماعة بلوتوث" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm"></div>
+<div><label for="pA" class="block text-xs text-slate-400 mb-1">سعر متجر 1 (ج.م)</label><input id="pA" type="number" min="1" value="1200" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm"></div>
+<div><label for="pB" class="block text-xs text-slate-400 mb-1">سعر متجر 2 (ج.م)</label><input id="pB" type="number" min="1" value="950" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm"></div>
+<button id="btnAddDeal" type="button" class="py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-extrabold text-sm cursor-pointer">+ قارن وأضف</button>
+</section>
+<section class="card rounded-2xl p-5">
+<div class="flex justify-between items-center mb-3"><h2 class="font-bold text-sky-300">📊 جدول المقارنة والتوفير</h2><span class="text-sm font-extrabold text-emerald-400">إجمالي التوفير: <span id="totSave">0</span> ج.م</span></div>
+<div id="list" class="space-y-2 text-sm"></div>
+</section>
+</div>
+<script>
+let deals=[{id:1,name:'مايكروفون بودكاست USB',a:2400,b:1950}];
+function render(){
+ let tot=0;
+ document.getElementById('list').innerHTML=deals.map(d=>{
+  const diff=Math.abs(d.a-d.b), pct=Math.round((diff/Math.max(d.a,d.b))*100), best=d.a<=d.b?'متجر 1':'متجر 2';
+  tot+=diff;
+  return `<div class="flex flex-wrap justify-between items-center gap-2 bg-slate-900 p-3 rounded-xl border border-slate-800">
+   <div><strong class="text-white">${d.name}</strong> <span class="text-xs text-slate-400">(متجر 1: ${d.a} ج.م | متجر 2: ${d.b} ج.م)</span></div>
+   <div class="flex items-center gap-3"><span class="text-emerald-400 font-bold">الأفضل: ${best} — توفير ${diff} ج.م (${pct}%)</span>
+   <button data-rm="${d.id}" type="button" class="rm text-rose-400 font-bold cursor-pointer">✕</button></div></div>`;
+ }).join('');
+ document.getElementById('totSave').textContent=tot;
+}
+document.getElementById('btnAddDeal').addEventListener('click',()=>{
+ const name=document.getElementById('pName').value.trim()||'منتج جديد';
+ const a=Math.max(1,parseFloat(document.getElementById('pA').value)||1);
+ const b=Math.max(1,parseFloat(document.getElementById('pB').value)||1);
+ deals.unshift({id:Date.now(),name,a,b}); document.getElementById('pName').value=''; render();
+});
+document.getElementById('list').addEventListener('click',e=>{const b=e.target.closest('.rm');if(!b)return;deals=deals.filter(x=>x.id!==Number(b.dataset.rm));render();});
+render();
+</script></body></html>

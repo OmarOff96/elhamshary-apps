@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HalaStore.pi — متجر المهارات والأدوات الرقمية</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>body{font-family:Segoe UI,Tahoma,sans-serif;background:#090d16;color:#f1f5f9;min-height:100vh}.card{background:#111827;border:1px solid rgba(212,175,55,.35)}</style>
+</head><body class="p-4"><div class="max-w-5xl mx-auto space-y-5">
+<header class="card rounded-2xl p-5 flex flex-wrap justify-between items-center gap-3">
+<div><span class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 font-bold">🛍️ halastore.pi • Pi Ecosystem Utility</span>
+<h1 class="text-2xl font-extrabold text-amber-300 mt-2">متجر هلا الرقمي — مهارات وأدوات AI</h1>
+<p class="text-slate-400 text-sm">قوالب جاهزة، أدوات أتمتة، ومهارات رقمية مدعومة بنظام Pi</p></div>
+<button id="btnCart" type="button" class="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-sm cursor-pointer">🛒 السلة (<span id="cartCount">0</span>)</button>
+</header>
+<div class="flex flex-wrap gap-2 items-center">
+<input id="q" type="text" placeholder="ابحث عن أداة أو قالب..." class="flex-1 min-w-[200px] px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm">
+<button data-cat="ALL" type="button" class="cat-btn px-3 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs cursor-pointer">الكل</button>
+<button data-cat="AI" type="button" class="cat-btn px-3 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs cursor-pointer">أدوات AI</button>
+<button data-cat="Trading" type="button" class="cat-btn px-3 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs cursor-pointer">قوالب التداول</button>
+<button data-cat="Creator" type="button" class="cat-btn px-3 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs cursor-pointer">صناع المحتوى</button>
+</div>
+<div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+<section id="cartBox" class="hidden card rounded-2xl p-5 space-y-3">
+<div class="flex justify-between items-center"><h2 class="text-lg font-bold text-amber-300">🛒 سلة المشتريات</h2><button id="btnCloseCart" type="button" class="text-slate-400 hover:text-white cursor-pointer">✕ إغلاق</button></div>
+<div id="cartItems" class="space-y-2 text-sm"></div>
+<div class="flex justify-between items-center pt-3 border-t border-slate-700 font-bold"><span>الإجمالي: <span id="cartTotal" class="text-amber-300">0 Pi</span></span>
+<button id="btnCheckout" type="button" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-sm cursor-pointer">تأكيد الطلب (Pi Checkout)</button></div>
+</section>
+<footer class="card rounded-2xl p-4 text-xs text-slate-400 flex flex-wrap justify-between gap-2">
+<span>📩 تليجرام: <strong class="text-amber-300">@ElHamshary_support</strong></span>
+<a href="https://linktr.ee/ElHmashary_prime" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">linktr.ee/ElHmashary_prime</a>
+</footer></div>
+<div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-sm opacity-0 pointer-events-none transition-opacity"></div>
+<script>
+const ITEMS=[
+ {id:1,title:'حزمة برومبتات صناعة الريلز الفيرال',cat:'Creator',pi:2,desc:'50 قالب هوك وكابشن بقاعدة 2-2-1 جاهز للمنصات الأربع.'},
+ {id:2,title:'قالب تقرير نتائج التداول اليومي',cat:'Trading',pi:3,desc:'مفكرة تقييم يومي وأسبوعي مبنية على trade-report-builder.'},
+ {id:3,title:'دليل بناء العقل المحلي (Ollama OS)',cat:'AI',pi:4,desc:'خطوات تشغيل نماذج الذكاء المحلي وربطها بأدوات الأتمتة.'},
+ {id:4,title:'أداة تنظيم وحارس ملفات الجهاز',cat:'AI',pi:2,desc:'سكربتات فحص المساحة وتنظيم الأصول الرقمية بأمان.'},
+ {id:5,title:'حزمة قوالب كاروسيل الأسواق',cat:'Creator',pi:3,desc:'تصاميم متناسقة للتحليل والنتائج على تليجرام وإنستجرام.'},
+ {id:6,title:'دليل إدارة المخاطر وسلّم 1:5',cat:'Trading',pi:2,desc:'شرح عملي لإدارة الستوب الضيق وحجز الأرباح التراكمي.'}
+];
+let cat='ALL', cart=[];
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.remove('opacity-0');setTimeout(()=>t.classList.add('opacity-0'),2000);}
+function render(){
+ const q=document.getElementById('q').value.trim().toLowerCase();
+ const list=ITEMS.filter(i=>(cat==='ALL'||i.cat===cat)&&(!q||i.title.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q)));
+ document.getElementById('grid').innerHTML=list.map(i=>`<div class="card rounded-2xl p-4 flex flex-col justify-between gap-3">
+ <div><span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-bold">${i.cat}</span>
+ <h3 class="font-bold text-base mt-2">${i.title}</h3><p class="text-xs text-slate-400 mt-1">${i.desc}</p></div>
+ <div class="flex justify-between items-center pt-2 border-t border-slate-800"><span class="font-extrabold text-amber-300">${i.pi} Pi</span>
+ <button data-add="${i.id}" type="button" class="add-btn px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs cursor-pointer">+ أضف للسلة</button></div></div>`).join('');
+ document.getElementById('cartCount').textContent=cart.length;
+ const total=cart.reduce((s,x)=>s+x.pi,0);
+ document.getElementById('cartTotal').textContent=total+' Pi';
+ document.getElementById('cartItems').innerHTML=cart.length?cart.map((x,idx)=>`<div class="flex justify-between items-center bg-slate-900 p-2 rounded-lg"><span>${x.title} (${x.pi} Pi)</span><button data-rm="${idx}" type="button" class="rm-btn text-rose-400 font-bold cursor-pointer">✕</button></div>`).join(''):'<p class="text-slate-500">السلة فارغة حاليًا.</p>';
+}
+document.getElementById('grid').addEventListener('click',e=>{const b=e.target.closest('.add-btn');if(!b)return;const item=ITEMS.find(x=>x.id===Number(b.dataset.add));if(item){cart.push(item);render();toast('تمت الإضافة للسلة');}});
+document.getElementById('cartItems').addEventListener('click',e=>{const b=e.target.closest('.rm-btn');if(!b)return;cart.splice(Number(b.dataset.rm),1);render();});
+document.querySelectorAll('.cat-btn').forEach(b=>b.addEventListener('click',()=>{cat=b.dataset.cat;document.querySelectorAll('.cat-btn').forEach(x=>x.className='cat-btn px-3 py-2 rounded-xl text-xs cursor-pointer '+(x===b?'bg-amber-500 text-slate-950 font-bold':'bg-slate-800 text-slate-300'));render();}));
+document.getElementById('q').addEventListener('input',render);
+document.getElementById('btnCart').addEventListener('click',()=>document.getElementById('cartBox').classList.toggle('hidden'));
+document.getElementById('btnCloseCart').addEventListener('click',()=>document.getElementById('cartBox').classList.add('hidden'));
+document.getElementById('btnCheckout').addEventListener('click',()=>{if(!cart.length){toast('أضف منتجًا أولًا');return;}toast('جاهز للربط بمحفظة Pi SDK في الخطوة القادمة!');});
+render();
+</script></body></html>
